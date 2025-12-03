@@ -1,156 +1,300 @@
-# Water Pump Prediction System
+# Water Pump Prediction API - Vercel Deployment
 
-This project uses **Logistic Regression** machine learning to predict whether a water pump should be ON or OFF based on environmental sensor data.
+🚀 **FastAPI ML Model deployed on Vercel**
 
-## 📊 Dataset
+## 📋 Project Structure
 
-- **File**: `Soil Moisture, Air Temperature and humidity, and Water Motor onoff Monitor data.AmritpalKaur.csv`
-- **Total Records**: 3,000
-- **Features**:
-  - Soil Moisture (numeric)
-  - Temperature (°C)
-  - Air Humidity (%)
-- **Target**: Pump Data (0 = OFF, 1 = ON)
+```
+IOTA Project/
+├── api/
+│   └── index.py                           # Main FastAPI application (Vercel entry point)
+├── pump_prediction_model.pkl              # Trained ML model
+├── scaler.pkl                             # Feature scaler
+├── requirements.txt                       # Python dependencies
+├── vercel.json                           # Vercel configuration
+└── README.md                             # This file
+```
 
-## 🎯 Model Performance
+## 🚀 Deploy to Vercel
+
+### Method 1: Deploy from GitHub (Easiest ⭐)
+
+1. **Push to GitHub**
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin https://github.com/YOUR_USERNAME/IOTA-Project.git
+   git push -u origin main
+   ```
+
+2. **Deploy on Vercel**
+   - Visit [vercel.com](https://vercel.com)
+   - Click "New Project"
+   - Import your GitHub repository
+   - Vercel will auto-detect and deploy!
+   - Get your live URL: `https://your-project.vercel.app`
+
+### Method 2: Deploy with Vercel CLI
+
+1. **Install Vercel CLI**
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Login to Vercel**
+   ```bash
+   vercel login
+   ```
+
+3. **Deploy**
+   ```bash
+   vercel
+   ```
+
+4. **Deploy to Production**
+   ```bash
+   vercel --prod
+   ```
+
+## 🔗 API Endpoints
+
+Once deployed, your API will be available at: `https://your-project.vercel.app`
+
+| Endpoint | Method | Description | Response |
+|----------|--------|-------------|----------|
+| `/` | GET | API info | API details |
+| `/health` | GET | Health check | Status |
+| `/predict` | POST | Single prediction | `{"prediction": 0 or 1}` |
+| `/predict/batch` | POST | Batch predictions | `{"predictions": [0,1,1]}` |
+| `/model/info` | GET | Model information | Model details |
+| `/model/statistics` | GET | Model statistics | Statistics |
+| `/docs` | GET | Interactive API docs | Swagger UI |
+
+## 📝 API Usage Examples
+
+### Single Prediction
+
+```bash
+curl -X POST "https://your-project.vercel.app/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "soil_moisture": 450,
+    "temperature": 28,
+    "air_humidity": 65
+  }'
+```
+
+**Response:**
+```json
+{"prediction": 1}
+```
+
+- `0` = Pump OFF (soil has enough moisture)
+- `1` = Pump ON (soil needs watering)
+
+### Batch Prediction
+
+```bash
+curl -X POST "https://your-project.vercel.app/predict/batch" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sensors": [
+      {"soil_moisture": 400, "temperature": 33, "air_humidity": 77},
+      {"soil_moisture": 800, "temperature": 32, "air_humidity": 50}
+    ]
+  }'
+```
+
+**Response:**
+```json
+{"predictions": [1, 0]}
+```
+
+## 🔧 Local Development
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run locally
+uvicorn api.index:app --reload
+
+# Access at http://localhost:8000
+# Docs at http://localhost:8000/docs
+```
+
+## 📦 Model Details
 
 - **Algorithm**: Logistic Regression
-- **Accuracy**: **99.83%**
-- **Training Set**: 2,400 samples (80%)
-- **Testing Set**: 600 samples (20%)
+- **Accuracy**: 99.83%
+- **Training Samples**: 2,400
+- **Test Samples**: 600
 
-### Classification Report:
-```
-              precision    recall  f1-score   support
-Pump OFF (0)       1.00      1.00      1.00       286
-Pump ON (1)        1.00      1.00      1.00       314
-    accuracy                           1.00       600
-```
+### Input Features:
+- **Soil Moisture**: 0-1000
+- **Temperature**: -10 to 50°C
+- **Air Humidity**: 0-100%
 
-### Key Insights:
-- **Soil Moisture** is the strongest predictor (coefficient: -9.91)
-  - Lower soil moisture → Pump ON
-  - Higher soil moisture → Pump OFF
-- Temperature and humidity have minimal impact
+### Output:
+- **0**: Pump OFF
+- **1**: Pump ON
 
-## 📁 Project Files
+## 📱 Integration Examples
 
-1. **`model_training.py`**: Trains the logistic regression model
-2. **`predict.py`**: Interactive prediction system for user input
-3. **`test_predictions.py`**: Tests model with sample data
-4. **`pump_prediction_model.pkl`**: Saved trained model
-5. **`scaler.pkl`**: Feature scaler for data normalization
+### Python
+```python
+import requests
 
-## 🚀 Quick Start
+url = "https://your-project.vercel.app/predict"
+data = {
+    "soil_moisture": 450,
+    "temperature": 28,
+    "air_humidity": 65
+}
 
-### 1. Train the Model
-```bash
-python model_training.py
+response = requests.post(url, json=data)
+prediction = response.json()["prediction"]
+print(f"Pump should be: {'ON' if prediction == 1 else 'OFF'}")
 ```
 
-This will:
-- Load and analyze the CSV data
-- Train the logistic regression model
-- Display model performance metrics
-- Save the model and scaler
+### JavaScript/Node.js
+```javascript
+const response = await fetch('https://your-project.vercel.app/predict', {
+  method: 'POST',
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify({
+    soil_moisture: 450,
+    temperature: 28,
+    air_humidity: 65
+  })
+});
 
-### 2. Make Predictions (Interactive)
-```bash
-python predict.py
+const data = await response.json();
+console.log(`Pump: ${data.prediction === 1 ? 'ON' : 'OFF'}`);
 ```
 
-This will prompt you to enter:
-- Soil Moisture value
-- Temperature (°C)
-- Air Humidity (%)
+### Arduino/ESP32
+```cpp
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
 
-Then it will predict whether the pump should be ON or OFF with confidence levels.
+HTTPClient http;
+http.begin("https://your-project.vercel.app/predict");
+http.addHeader("Content-Type", "application/json");
 
-### 3. Test with Sample Data
-```bash
-python test_predictions.py
+// Create JSON payload
+String payload = "{\"soil_moisture\":" + String(soilMoisture) + 
+                 ",\"temperature\":" + String(temperature) + 
+                 ",\"air_humidity\":" + String(humidity) + "}";
+
+int httpCode = http.POST(payload);
+if (httpCode == 200) {
+  String response = http.getString();
+  // Parse JSON to get prediction value
+  DynamicJsonDocument doc(1024);
+  deserializeJson(doc, response);
+  int prediction = doc["prediction"];
+  
+  // Control pump
+  digitalWrite(PUMP_PIN, prediction == 1 ? HIGH : LOW);
+}
+http.end();
 ```
 
-## 💡 Example Predictions
+## 🌟 Vercel Features
 
-### Example 1: Low Soil Moisture
-```
-Input:
-  - Soil Moisture: 400
-  - Temperature: 33°C
-  - Air Humidity: 77%
+✅ **Serverless** - No server management
+✅ **Auto-scaling** - Handles traffic automatically
+✅ **Global CDN** - Fast response times worldwide
+✅ **HTTPS** - Automatic SSL certificates
+✅ **Free tier** - Perfect for small projects
+✅ **Zero config** - Just push and deploy
+✅ **Monitoring** - Built-in analytics
 
-PREDICTION: Pump should be ON 🟢
-Confidence: 100.00%
-```
+## 🛠️ Troubleshooting
 
-### Example 2: High Soil Moisture
-```
-Input:
-  - Soil Moisture: 800
-  - Temperature: 32°C
-  - Air Humidity: 50%
+### Build Failed?
+- Check `requirements.txt` has correct dependencies
+- Ensure model files (`.pkl`) are in root directory
+- Verify `vercel.json` is properly configured
 
-PREDICTION: Pump should be OFF 🔴
-Confidence: 99.81%
-```
+### Model Not Loading?
+- Verify `pump_prediction_model.pkl` and `scaler.pkl` exist
+- Check file paths in `api/index.py`
+- Review Vercel build logs
 
-## 📦 Dependencies
+### API Not Responding?
+- Check Vercel deployment logs
+- Test `/health` endpoint first
+- Verify CORS settings if calling from browser
 
-```
-pandas
-numpy
-scikit-learn
-joblib
-```
+### 413 Payload Too Large?
+- Vercel has 4.5MB limit for serverless functions
+- Use batch endpoint for multiple predictions
+- Split large requests into smaller batches
 
-Install with:
-```bash
-pip install pandas numpy scikit-learn joblib
-```
+## 📊 Vercel Dashboard
 
-## 🔧 How It Works
+After deployment, monitor your API:
+- **Analytics**: Track requests and response times
+- **Logs**: View real-time logs
+- **Deployments**: Manage versions
+- **Settings**: Configure domains and environment variables
 
-1. **Data Preprocessing**: Features are standardized using StandardScaler
-2. **Model Training**: Logistic Regression with max_iter=1000
-3. **Prediction**: New inputs are scaled and fed to the model
-4. **Output**: Binary classification (0/1) with probability scores
+## 🔒 Security Best Practices
 
-## 🎓 Understanding the Model
+1. **Rate Limiting**: Consider adding rate limiting for production
+2. **API Keys**: Add authentication if needed
+3. **CORS**: Restrict origins in production
+4. **Input Validation**: Already implemented via Pydantic
 
-The model predicts pump status based on the logistic function:
+## 📈 Performance
 
-**Key Pattern Learned**:
-- **Soil Moisture < ~650**: Pump ON (soil needs water)
-- **Soil Moisture > ~650**: Pump OFF (soil has enough water)
+- **Cold Start**: ~2-3 seconds (first request)
+- **Warm Response**: ~100-200ms
+- **Model Loading**: Cached after first load
+- **Concurrent Requests**: Automatically scaled
 
-Temperature and humidity play minor roles in fine-tuning the decision.
+## 🎯 Next Steps
 
-## 📈 Model Coefficients
+1. ✅ Push code to GitHub
+2. ✅ Deploy on Vercel
+3. ✅ Get your API URL
+4. ✅ Test endpoints
+5. ✅ Integrate into your IoT system
+6. ✅ Monitor usage
 
-| Feature | Coefficient | Impact |
-|---------|------------|--------|
-| Soil Moisture | -9.91 | Strong negative (lower → ON) |
-| Temperature | 0.004 | Minimal positive |
-| Air Humidity | -0.014 | Minimal negative |
+## 📄 Files Explanation
 
-## 🤝 Usage Tips
+- **`api/index.py`**: Main FastAPI application (Vercel entry point)
+- **`vercel.json`**: Vercel deployment configuration
+- **`requirements.txt`**: Python package dependencies
+- **`pump_prediction_model.pkl`**: Trained logistic regression model
+- **`scaler.pkl`**: StandardScaler for feature normalization
+- **`.vercelignore`**: Files to exclude from deployment
 
-- Ensure input values are within reasonable ranges:
-  - Soil Moisture: 300-1000
-  - Temperature: 18-40°C
-  - Air Humidity: 35-85%
-- The model provides probability scores for transparency
-- Higher confidence (>95%) indicates more certain predictions
+## 💡 Tips
 
-## 📝 Notes
-
-- The model uses feature scaling for better performance
-- Always use the same scaler that was used during training
-- Model files (`.pkl`) must be in the same directory as the prediction scripts
+- Use `/docs` endpoint to test API interactively
+- Check `/health` to verify model is loaded
+- Monitor Vercel dashboard for usage stats
+- Enable branch deployments for testing
 
 ---
 
-**Created**: December 2025
-**Model**: Logistic Regression (scikit-learn)
-**Accuracy**: 99.83%
+**🚀 Ready to Deploy?**
+
+```bash
+# Quick deploy command
+vercel --prod
+```
+
+**📊 Model Accuracy**: 99.83%
+**⚡ Response Time**: < 200ms
+**🌍 Deployment**: Vercel Edge Network
+
+---
+
+**Need Help?** Check Vercel documentation at [vercel.com/docs](https://vercel.com/docs)

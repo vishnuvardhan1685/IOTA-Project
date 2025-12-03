@@ -3,9 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import joblib
 import numpy as np
-from typing import Dict, List
-import pandas as pd
+from typing import List
 from datetime import datetime
+import os
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -23,10 +23,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Get the directory where this file is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(BASE_DIR)
+
 # Load the trained model and scaler
 try:
-    model = joblib.load('pump_prediction_model.pkl')
-    scaler = joblib.load('scaler.pkl')
+    model = joblib.load(os.path.join(PARENT_DIR, 'pump_prediction_model.pkl'))
+    scaler = joblib.load(os.path.join(PARENT_DIR, 'scaler.pkl'))
     print("✅ Model and scaler loaded successfully!")
 except Exception as e:
     print(f"❌ Error loading model: {e}")
@@ -39,14 +43,15 @@ class SensorInput(BaseModel):
     temperature: float = Field(..., description="Air temperature in Celsius", ge=-10, le=50)
     air_humidity: float = Field(..., description="Air humidity percentage", ge=0, le=100)
     
-    class Config:
-        json_schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "soil_moisture": 450.5,
                 "temperature": 28.5,
                 "air_humidity": 65.2
             }
         }
+    }
 
 class PredictionResponse(BaseModel):
     prediction: int = Field(..., description="0 = Pump OFF, 1 = Pump ON")
@@ -70,6 +75,7 @@ async def root():
         "version": "1.0.0",
         "status": "online",
         "model_loaded": model is not None,
+        "deployment": "Vercel",
         "endpoints": {
             "predict": "/predict",
             "predict_batch": "/predict/batch",
@@ -207,9 +213,5 @@ async def get_model_statistics():
         "intercept": round(float(model.intercept_[0]), 4)
     }
 
-if __name__ == "__main__":
-    import uvicorn
-    print("🚀 Starting Water Pump Prediction API...")
-    print("📚 API Documentation: http://localhost:8000/docs")
-    print("🔍 Alternative docs: http://localhost:8000/redoc")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# Vercel serverless function handler
+handler = app
